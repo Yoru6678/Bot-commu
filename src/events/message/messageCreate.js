@@ -1,6 +1,6 @@
 const { Events } = require('discord.js');
 const logger = require('../../utils/logger');
-const { checkCooldown } = require('../../handlers/cooldownHandler');
+const cooldownHandler = require('../../handlers/cooldownHandler');
 
 module.exports = {
     name: Events.MessageCreate,
@@ -25,10 +25,13 @@ module.exports = {
             
             logger.debug(`✅ Commande trouvée: ${command.name}`);
             
-            const cooldownCheck = checkCooldown(message, command);
-            if (cooldownCheck.onCooldown) {
-                return message.reply(`⏱️ Attendez ${cooldownCheck.timeLeft}s avant de réutiliser cette commande.`);
+            const cooldownTime = cooldownHandler.isOnCooldown(message.author.id, command.name);
+            if (cooldownTime) {
+                return message.reply(`⏱️ Attendez ${cooldownTime}s avant de réutiliser cette commande.`);
             }
+            
+            const cooldown = command.cooldown || 3;
+            cooldownHandler.setCooldown(message.author.id, command.name, cooldown);
             
             await command.execute(message, args, client);
             
