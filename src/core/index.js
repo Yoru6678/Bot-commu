@@ -3,7 +3,7 @@ const HarukaClient = require('./client');
 const SecurityAudit = require('../security/securityAudit');
 const logger = require('../utils/logger');
 
-console.log(`\nHARUKA PROTECT - STARTING\n`);
+console.log(`\n{+} NAMI - STARTING\n`);
 
 (async () => {
     try {

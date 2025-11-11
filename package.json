@@ -1,7 +1,7 @@
 {
-  "name": "haruka-protect",
+  "name": "nami-protect",
   "version": "1.0.0",
-  "description": "Bot Discord professionnel de modération ultra-sécurisé - Haruka Protect",
+  "description": "{+} Nami - Bot Discord de modération ultra-sécurisé",
   "main": "src/core/index.js",
   "scripts": {
     "start": "node src/core/index.js",
