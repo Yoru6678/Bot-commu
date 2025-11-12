@@ -9,7 +9,7 @@ module.exports = {
     async execute(message, client) {
         try {
             if (message.author?.bot) return;
-            if (!message.content) return;
+            if (!message.content && message.attachments.size === 0) return;
             
             CacheService.cacheDeletedMessage(message);
             logger.debug(`📝 Message deleted cached from ${message.author?.tag} in ${message.channel.id}`);

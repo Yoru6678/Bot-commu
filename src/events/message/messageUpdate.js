@@ -9,10 +9,35 @@ module.exports = {
     async execute(oldMessage, newMessage, client) {
         try {
             if (newMessage.author?.bot) return;
-            if (!oldMessage.content || !newMessage.content) return;
-            if (oldMessage.content === newMessage.content) return;
             
-            CacheService.cacheEditedMessage(oldMessage, newMessage);
+            const oldContent = oldMessage.content || '';
+            const oldAttachments = Array.from(oldMessage.attachments.values());
+            const oldAuthor = oldMessage.author;
+            
+            if (oldMessage.partial) {
+                try {
+                    newMessage = await newMessage.fetch();
+                } catch (err) {
+                    logger.debug('Could not fetch new message for partial old message');
+                    return;
+                }
+            }
+            
+            const newContent = newMessage.content || '';
+            const newAttachments = Array.from(newMessage.attachments.values());
+            
+            const oldAttachmentIds = oldAttachments.map(a => a.id).sort().join(',');
+            const newAttachmentIds = newAttachments.map(a => a.id).sort().join(',');
+            
+            if (oldContent === newContent && oldAttachmentIds === newAttachmentIds) return;
+            
+            const oldMessageSnapshot = {
+                content: oldContent,
+                attachments: new Map(oldAttachments.map(a => [a.id, a])),
+                author: oldAuthor
+            };
+            
+            CacheService.cacheEditedMessage(oldMessageSnapshot, newMessage);
             logger.debug(`✏️ Message edit cached from ${newMessage.author?.tag} in ${newMessage.channel.id}`);
         } catch (error) {
             logger.error('[MessageUpdate] Error:', error);

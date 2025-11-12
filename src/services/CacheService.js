@@ -8,11 +8,26 @@ class CacheService {
 
     cacheDeletedMessage(message) {
         const key = message.channel.id;
+        const attachments = Array.from(message.attachments.values()).map(a => ({
+            id: a.id,
+            name: a.name,
+            size: a.size,
+            url: a.url,
+            proxyURL: a.proxyURL,
+            contentType: a.contentType
+        }));
+
         this.deletedMessages.set(key, {
             content: message.content,
-            author: message.author,
+            author: {
+                id: message.author.id,
+                tag: message.author.tag,
+                username: message.author.username,
+                discriminator: message.author.discriminator,
+                avatarURL: message.author.displayAvatarURL()
+            },
             createdAt: message.createdAt,
-            attachments: Array.from(message.attachments.values()),
+            attachments: attachments,
             timestamp: Date.now()
         });
 
@@ -31,10 +46,37 @@ class CacheService {
 
     cacheEditedMessage(oldMessage, newMessage) {
         const key = newMessage.channel.id;
+        
+        const oldAttachments = Array.from(oldMessage.attachments.values()).map(a => ({
+            id: a.id,
+            name: a.name,
+            size: a.size,
+            url: a.url,
+            proxyURL: a.proxyURL,
+            contentType: a.contentType
+        }));
+
+        const newAttachments = Array.from(newMessage.attachments.values()).map(a => ({
+            id: a.id,
+            name: a.name,
+            size: a.size,
+            url: a.url,
+            proxyURL: a.proxyURL,
+            contentType: a.contentType
+        }));
+
         this.editedMessages.set(key, {
             oldContent: oldMessage.content,
             newContent: newMessage.content,
-            author: newMessage.author,
+            oldAttachments: oldAttachments,
+            newAttachments: newAttachments,
+            author: {
+                id: newMessage.author.id,
+                tag: newMessage.author.tag,
+                username: newMessage.author.username,
+                discriminator: newMessage.author.discriminator,
+                avatarURL: newMessage.author.displayAvatarURL()
+            },
             editedAt: new Date(),
             timestamp: Date.now()
         });

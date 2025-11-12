@@ -16,17 +16,18 @@ module.exports = {
                 return message.reply({ embeds: [embeds.error('Aucun message supprimé récemment dans ce salon.')] });
             }
 
-            const embed = embeds.info('', '🔍 Message Supprimé', {
-                fields: [
-                    { name: '👤 Auteur', value: deleted.author.tag, inline: true },
-                    { name: '📅 Date', value: deleted.createdAt.toLocaleString('fr-FR'), inline: true },
-                    { name: '💬 Contenu', value: deleted.content || '*Aucun contenu texte*', inline: false }
-                ]
-            });
+            const fields = [
+                { name: '👤 Auteur', value: deleted.author.tag, inline: true },
+                { name: '📅 Date', value: deleted.createdAt.toLocaleString('fr-FR'), inline: true },
+                { name: '💬 Contenu', value: deleted.content || '*Aucun contenu texte*', inline: false }
+            ];
 
-            if (deleted.attachments.length > 0) {
-                embed.addFields({ name: '📎 Pièces jointes', value: deleted.attachments.map(a => a.name).join(', '), inline: false });
+            if (deleted.attachments && deleted.attachments.length > 0) {
+                const attachmentLinks = deleted.attachments.map(a => `[${a.name}](${a.url})`).join('\n');
+                fields.push({ name: '📎 Pièces jointes', value: attachmentLinks, inline: false });
             }
+
+            const embed = embeds.info('', '🔍 Message Supprimé', { fields });
 
             return message.reply({ embeds: [embed] });
         } catch (err) {
