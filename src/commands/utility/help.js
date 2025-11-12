@@ -5,7 +5,10 @@ const CATEGORY_EMOJIS = {
     'moderation': '🛡️',
     'information': 'ℹ️',
     'administration': '⚙️',
-    'system': '🔐'
+    'system': '🔐',
+    'security': '🔒',
+    'logging': '📝',
+    'staff': '👥'
 };
 
 module.exports = {
