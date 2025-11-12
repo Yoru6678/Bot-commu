@@ -20,18 +20,13 @@ class DB {
                 guild_id TEXT,
                 xp INTEGER DEFAULT 0,
                 level INTEGER DEFAULT 0,
-                coins INTEGER DEFAULT 0,
-                bank INTEGER DEFAULT 0,
                 bio TEXT,
                 rep INTEGER DEFAULT 0,
                 last_message INTEGER,
-                last_daily INTEGER,
-                daily_streak INTEGER DEFAULT 0,
-                last_work INTEGER,
+                last_rep INTEGER,
                 message_count INTEGER DEFAULT 0,
                 voice_time INTEGER DEFAULT 0,
                 achievements TEXT DEFAULT '[]',
-                inventory TEXT DEFAULT '[]',
                 married_to TEXT,
                 afk_status INTEGER DEFAULT 0,
                 afk_reason TEXT,
@@ -44,8 +39,6 @@ class DB {
                 xp_multiplier REAL DEFAULT 1.0,
                 levelup_channel TEXT,
                 levelup_message TEXT DEFAULT '🎉 GG {user} ! Tu es maintenant niveau {level} ! 💪',
-                economy_enabled INTEGER DEFAULT 1,
-                shop_items TEXT DEFAULT '[]',
                 role_rewards TEXT DEFAULT '[]'
             );
 
@@ -95,13 +88,9 @@ class DB {
         return { newXP, newLevel, leveledUp, oldLevel: user.level };
     }
 
-    addCoins(userId, guildId, amount) {
-        const user = this.getUser(userId, guildId);
-        this.updateUser(userId, guildId, { coins: user.coins + amount });
-    }
-
     getLeaderboard(guildId, type = 'xp', limit = 10) {
-        const column = type === 'coins' ? 'coins' : 'xp';
+        const validTypes = { xp: 'xp', vocal: 'voice_time', messages: 'message_count', rep: 'rep' };
+        const column = validTypes[type] || 'xp';
         return this.db.prepare(`
             SELECT * FROM users 
             WHERE guild_id = ? 
@@ -112,7 +101,8 @@ class DB {
 
     getUserRank(userId, guildId, type = 'xp') {
         const key = `${userId}-${guildId}`;
-        const column = type === 'coins' ? 'coins' : 'xp';
+        const validTypes = { xp: 'xp', vocal: 'voice_time', messages: 'message_count', rep: 'rep' };
+        const column = validTypes[type] || 'xp';
         const result = this.db.prepare(`
             SELECT COUNT(*) + 1 as rank FROM users 
             WHERE guild_id = ? AND ${column} > (

@@ -7,70 +7,67 @@ module.exports = {
     cooldown: 5,
     async execute(message, args, client) {
         const categories = {
-            '📊 Profil & Leveling': {
-                description: 'Système XP, niveaux et progression',
+            '🧰 Utilitaires': {
+                description: 'Commandes pratiques et informations',
                 commands: [
-                    '`+profile [@user]` - Affiche ton profil détaillé',
-                    '`+rank [@user]` - Carte de rang avec barre XP',
-                    '`+leaderboard [type]` - Classement (xp/coins/vocal/messages)',
+                    '`+ping` - Latence du bot',
+                    '`+help` - Ce message d\'aide',
+                    '`+serverinfo` - Infos sur le serveur',
+                    '`+userinfo [@user]` - Infos sur un membre',
+                    '`+avatar [@user]` - Avatar d\'un utilisateur'
+                ]
+            },
+            '📊 Profil & Stats': {
+                description: 'Ton profil, XP, niveaux et statistiques',
+                commands: [
+                    '`+profile [@user]` - Affiche le profil détaillé',
+                    '`+rank [@user]` - Carte de rang avec progression XP',
+                    '`+leaderboard [xp/vocal/messages/rep]` - Classements du serveur',
                     '`+setbio <texte>` - Définis ta bio personnelle'
                 ]
             },
-            '💰 Économie': {
-                description: 'Gagne et dépense des coins',
-                commands: [
-                    '`+balance [@user]` - Voir ton argent',
-                    '`+daily` - Récompense quotidienne (500-1000 coins)',
-                    '`+work` - Travaille pour gagner des coins',
-                    '`+deposit <montant>` - Dépose à la banque',
-                    '`+withdraw <montant>` - Retire de la banque',
-                    '`+transfer @user <montant>` - Transfère des coins'
-                ]
-            },
-            '🎲 Jeux': {
-                description: 'Mise tes coins et tente ta chance !',
-                commands: [
-                    '`+coinflip <pile/face> <mise>` - Pile ou face (x2)',
-                    '`+dice <1-6> <mise>` - Lance un dé (x5)',
-                    '`+slots <mise>` - Machine à sous (jusqu\'à x10)'
-                ]
-            },
-            '💬 Social': {
+            '💬 Social & Interactions': {
                 description: 'Interagis avec les autres membres',
                 commands: [
-                    '`+hug @user` - Fais un câlin',
+                    '`+hug @user` - Fais un câlin à quelqu\'un',
+                    '`+kiss @user` - Envoie un bisou',
+                    '`+slap @user` - Gifle quelqu\'un (pour rire !)',
                     '`+ship @user1 @user2` - Compatibilité amoureuse',
                     '`+rep @user` - Donne +1 réputation (1x/24h)',
                     '`+afk [raison]` - Active le mode AFK'
                 ]
             },
-            '🎉 Fun': {
-                description: 'Commandes amusantes',
+            '🎮 Jeux & Mini-Games': {
+                description: 'Jeux amusants sans mise d\'argent',
                 commands: [
-                    '`+meme` - Meme aléatoire',
-                    '`+8ball <question>` - Boule magique'
+                    '`+rps <pierre/feuille/ciseaux>` - Pierre Feuille Ciseaux',
+                    '`+roll [max] [count]` - Lance un ou plusieurs dés',
+                    '`+8ball <question>` - Pose une question à la boule magique'
                 ]
             },
-            '🛠️ Utilitaires': {
-                description: 'Commandes utiles',
+            '🎉 Fun & Divertissement': {
+                description: 'Commandes amusantes et créatives',
                 commands: [
-                    '`+ping` - Latence du bot',
-                    '`+help` - Ce message'
+                    '`+meme` - Affiche un meme aléatoire',
+                    '`+poll <question> | <opt1> | <opt2>...` - Crée un sondage',
+                    '`+choose <opt1> <opt2> ...` - Le bot choisit pour toi',
+                    '`+say <message>` - Le bot répète ce que tu dis',
+                    '`+reverse <texte>` - Inverse ton message'
                 ]
             }
         };
 
         const mainEmbed = new EmbedBuilder()
             .setTitle('🎉 Sora Community Bot - Aide')
-            .setDescription('**Bot communautaire** avec système XP, économie, jeux et bien plus !\n\n**Prefix:** `+`\n\n📝 Utilise le menu ci-dessous pour voir les commandes par catégorie !')
+            .setDescription('**Bot communautaire** fun et interactif !\n\nEncourage l\'engagement des membres avec des jeux, interactions sociales, statistiques et bien plus !\n\n**Prefix:** `+`\n\n📝 Utilise le menu ci-dessous pour voir les commandes par catégorie !')
             .setColor(client.config.EMBED_COLOR)
             .addFields(
-                { name: '📊 Profil & Leveling', value: 'XP, niveaux, classements', inline: true },
-                { name: '💰 Économie', value: 'Coins, daily, work, transferts', inline: true },
-                { name: '🎲 Jeux', value: 'Coinflip, dice, slots', inline: true },
-                { name: '💬 Social', value: 'Hug, ship, rep, afk', inline: true },
-                { name: '🎉 Fun', value: 'Meme, 8ball', inline: true },
-                { name: '🛠️ Utilitaires', value: 'Ping, help', inline: true }
+                { name: '🧰 Utilitaires', value: 'Ping, serverinfo, userinfo, avatar', inline: true },
+                { name: '📊 Profil & Stats', value: 'Profile, rank, leaderboard', inline: true },
+                { name: '💬 Social', value: 'Hug, kiss, ship, rep, afk', inline: true },
+                { name: '🎮 Jeux', value: 'RPS, roll, 8ball', inline: true },
+                { name: '🎉 Fun', value: 'Meme, poll, choose, say', inline: true },
+                { name: '✨ Engagement', value: 'Système XP automatique !', inline: true }
             )
             .setFooter({ text: `${client.commands.size} commandes disponibles` })
             .setTimestamp();

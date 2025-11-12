@@ -7,10 +7,10 @@ module.exports = {
     cooldown: 5,
     async execute(message, args, client) {
         const type = args[0]?.toLowerCase() || 'xp';
-        const validTypes = ['xp', 'coins', 'vocal', 'messages'];
+        const validTypes = ['xp', 'vocal', 'messages', 'rep'];
         
         if (!validTypes.includes(type)) {
-            return message.reply('❌ Type invalide ! Utilise: `xp`, `coins`, `vocal`, ou `messages`');
+            return message.reply('❌ Type invalide ! Utilise: `xp`, `vocal`, `messages`, ou `rep`');
         }
 
         const leaderboard = client.db.getLeaderboard(message.guild.id, type, 10);
@@ -32,9 +32,6 @@ module.exports = {
             let value;
 
             switch(type) {
-                case 'coins':
-                    value = `${userData.coins.toLocaleString()} 💰`;
-                    break;
                 case 'vocal':
                     const hours = Math.floor(userData.voice_time / 60);
                     const mins = userData.voice_time % 60;
@@ -42,6 +39,9 @@ module.exports = {
                     break;
                 case 'messages':
                     value = `${userData.message_count.toLocaleString()} 💬`;
+                    break;
+                case 'rep':
+                    value = `${userData.rep} ❤️`;
                     break;
                 default:
                     value = `Niveau ${userData.level} (${userData.xp.toLocaleString()} XP) ⭐`;
@@ -55,9 +55,9 @@ module.exports = {
         
         const titles = {
             xp: '⭐ Classement XP',
-            coins: '💰 Classement Coins',
             vocal: '🎤 Classement Vocal',
-            messages: '💬 Classement Messages'
+            messages: '💬 Classement Messages',
+            rep: '❤️ Classement Réputation'
         };
 
         const embed = new EmbedBuilder()

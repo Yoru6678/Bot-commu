@@ -25,15 +25,15 @@ module.exports = {
             .setThumbnail(target.displayAvatarURL({ dynamic: true, size: 256 }))
             .addFields(
                 { name: '🎯 Niveau', value: `**${user.level}** (#${rank})`, inline: true },
-                { name: '⭐ XP', value: `${user.xp.toLocaleString()} XP`, inline: true },
-                { name: '💰 Coins', value: `${user.coins.toLocaleString()}`, inline: true },
+                { name: '⭐ XP Total', value: `${user.xp.toLocaleString()} XP`, inline: true },
+                { name: '❤️ Réputation', value: `${user.rep} pts`, inline: true },
                 { name: '📈 Progression', value: `${progressBar(xpCurrent, xpNeeded, 15)}\n${xpCurrent}/${xpNeeded} XP`, inline: false },
                 { name: '💬 Messages', value: user.message_count.toLocaleString(), inline: true },
                 { name: '🎤 Temps Vocal', value: `${Math.floor(user.voice_time / 60)}h ${user.voice_time % 60}m`, inline: true },
-                { name: '❤️ Réputation', value: user.rep.toString(), inline: true },
+                { name: '📅 Membre depuis', value: `<t:${Math.floor(member.joinedTimestamp / 1000)}:R>`, inline: true },
             )
-            .setFooter({ text: `Membre depuis` })
-            .setTimestamp(member.joinedTimestamp);
+            .setFooter({ text: `ID: ${target.id}` })
+            .setTimestamp();
 
         if (user.bio) {
             embed.addFields({ name: '📝 Bio', value: user.bio, inline: false });

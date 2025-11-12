@@ -30,7 +30,8 @@ module.exports = {
 ${progressBar(xpCurrent, xpNeeded, 20)}
 ${xpCurrent.toLocaleString()} / ${xpNeeded.toLocaleString()} XP (${percentage}%)
 
-💰 **Coins:** ${user.coins.toLocaleString()}
+❤️ **Réputation:** ${user.rep} points
+💬 **Messages:** ${user.message_count.toLocaleString()}
             `)
             .setTimestamp();
 
