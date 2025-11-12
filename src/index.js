@@ -19,6 +19,8 @@ const client = new Client({
 });
 
 client.commands = new Collection();
+client.slashCommands = new Collection();
+client.slashCommandData = [];
 client.cooldowns = new Collection();
 client.config = config;
 client.db = db;
@@ -47,6 +49,23 @@ function loadCommands() {
     console.log(`✅ ${count} commandes chargées`);
 }
 
+function loadSlashCommands() {
+    const commandsPath = path.join(__dirname, 'slashCommands');
+    if (!fs.existsSync(commandsPath)) return;
+
+    const files = fs.readdirSync(commandsPath).filter(f => f.endsWith('.js'));
+    let count = 0;
+    for (const file of files) {
+        const command = require(path.join(commandsPath, file));
+        if (command && command.data && command.data.name) {
+            client.slashCommands.set(command.data.name, command);
+            client.slashCommandData.push(command.data);
+            count++;
+        }
+    }
+    console.log(`🔁 ${count} slash commandes chargées`);
+}
+
 function loadEvents() {
     const eventsPath = path.join(__dirname, 'events');
     const files = fs.readdirSync(eventsPath).filter(f => f.endsWith('.js'));
@@ -63,6 +82,7 @@ function loadEvents() {
 }
 
 loadCommands();
+loadSlashCommands();
 loadEvents();
 
 client.login(process.env.TOKEN).catch(err => {

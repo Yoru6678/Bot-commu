@@ -56,6 +56,16 @@ class DB {
                 joined_at INTEGER,
                 PRIMARY KEY (user_id, guild_id)
             );
+
+            CREATE TABLE IF NOT EXISTS reminders (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id TEXT,
+                guild_id TEXT,
+                channel_id TEXT,
+                remind_at INTEGER,
+                message TEXT,
+                created_at INTEGER DEFAULT (strftime('%s', 'now'))
+            );
         `);
     }
 
@@ -119,6 +129,28 @@ class DB {
             config = this.db.prepare('SELECT * FROM guild_config WHERE guild_id = ?').get(guildId);
         }
         return config;
+    }
+
+    // Reminders
+    createReminder(userId, guildId, channelId, remindAt, message) {
+        const stmt = this.db.prepare(`
+            INSERT INTO reminders (user_id, guild_id, channel_id, remind_at, message) 
+            VALUES (?, ?, ?, ?, ?)
+        `);
+        const info = stmt.run(userId, guildId, channelId, Math.floor(remindAt / 1000), message);
+        return info.lastInsertRowid;
+    }
+
+    getPendingReminders(afterUnixSeconds = 0) {
+        return this.db.prepare(`SELECT * FROM reminders WHERE remind_at >= ? ORDER BY remind_at ASC`).all(afterUnixSeconds);
+    }
+
+    getDueReminders(beforeUnixSeconds = 0) {
+        return this.db.prepare(`SELECT * FROM reminders WHERE remind_at <= ? ORDER BY remind_at ASC`).all(beforeUnixSeconds);
+    }
+
+    deleteReminder(id) {
+        return this.db.prepare(`DELETE FROM reminders WHERE id = ?`).run(id);
     }
 }
 
