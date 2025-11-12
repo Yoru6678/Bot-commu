@@ -1,48 +1,70 @@
 const embeds = require('../../utils/embeds');
-const { resolveMember } = require('../../utils/validators');
-const fs = require('fs');
-const path = require('path');
+const { PermissionsBitField } = require('discord.js');
+const db = require('../../database/database');
 
 module.exports = {
     name: 'warn',
-    description: 'Avertir un membre',
+    description: 'Donner un avertissement à un membre',
     category: 'moderation',
-    permissions: [],
+    aliases: ['w'],
+    cooldown: 3,
+    usage: '<@membre> <raison>',
+    permissions: [PermissionsBitField.Flags.ModerateMembers],
+    
     async execute(message, args, client) {
         try {
-            if (!message.member.permissions.has('ModerateMembers')) return message.reply({ embeds: [embeds.error('Permission insuffisante')] });
+            if (!message.member.permissions.has(PermissionsBitField.Flags.ModerateMembers)) {
+                return message.reply({ embeds: [embeds.error('Vous n\'avez pas la permission de gérer les avertissements.')] });
+            }
 
-            const target = await resolveMember(message.guild, args[0]);
-            if (!target) return message.reply({ embeds: [embeds.error('Membre introuvable.')] });
+            const target = message.mentions.members.first();
+            if (!target) {
+                return message.reply({ embeds: [embeds.error('Veuillez mentionner un membre à avertir.')] });
+            }
 
-            const reason = args.slice(1).join(' ') || 'Aucune raison spécifiée';
-            const warnData = getWarnData(message.guild.id, target.id);
+            if (target.id === message.author.id) {
+                return message.reply({ embeds: [embeds.error('Vous ne pouvez pas vous avertir vous-même.')] });
+            }
 
-            warnData.warns.push({ id: warnData.warns.length + 1, reason, moderator: message.author.tag, date: new Date().toISOString() });
-            saveWarnData(message.guild.id, target.id, warnData);
+            if (target.id === client.user.id) {
+                return message.reply({ embeds: [embeds.error('Je ne peux pas être averti.')] });
+            }
 
-            await message.reply({ embeds: [embeds.success(`${target.user.tag} a été averti.`, 'Action: Warn').addFields({ name: 'Raison', value: reason }, { name: 'Total avertissements', value: `${warnData.warns.length}` })] });
-            client.logger.command(`WARN: ${target.user.tag} by ${message.author.tag} in ${message.guild.id} - ${reason}`);
+            const reason = args.slice(1).join(' ');
+            if (!reason) {
+                return message.reply({ embeds: [embeds.error('Veuillez fournir une raison pour l\'avertissement.')] });
+            }
+
+            db.addWarning(message.guild.id, target.id, message.author.id, reason);
+            const totalWarns = db.getWarningCount(message.guild.id, target.id);
+
+            const embed = embeds.moderation(
+                `✅ **Avertissement donné avec succès**\n\n` +
+                `**Membre:** ${target.user.tag}\n` +
+                `**Raison:** ${reason}\n` +
+                `**Total d'avertissements:** ${totalWarns}\n` +
+                `**Modérateur:** ${message.author}`,
+                '⚠️ Avertissement'
+            );
+
+            await message.reply({ embeds: [embed] });
+
+            try {
+                await target.send({ embeds: [embeds.warn(
+                    `Vous avez reçu un avertissement sur **${message.guild.name}**\n\n` +
+                    `**Raison:** ${reason}\n` +
+                    `**Total:** ${totalWarns} avertissement(s)`,
+                    '⚠️ Avertissement'
+                )] });
+            } catch (e) {
+                // Impossible d'envoyer un MP
+            }
+
+            client.logger.command(`WARN: ${target.user.tag} by ${message.author.tag} - ${reason}`);
+            
         } catch (err) {
             client.logger.error('Error in warn command: ' + err.stack);
             return message.reply({ embeds: [embeds.error('Erreur lors de l\'avertissement.')] });
         }
     }
 };
-
-function getWarnData(guildId, userId) {
-    const dir = path.join(process.cwd(), 'src', 'database', 'warns');
-    const file = path.join(dir, `${guildId}.json`);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    if (!fs.existsSync(file)) return { warns: [] };
-    try { const data = JSON.parse(fs.readFileSync(file, 'utf8')); return data[userId] || { warns: [] }; } catch { return { warns: [] }; }
-}
-
-function saveWarnData(guildId, userId, warnData) {
-    const dir = path.join(process.cwd(), 'src', 'database', 'warns');
-    const file = path.join(dir, `${guildId}.json`);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    const data = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : {};
-    data[userId] = warnData;
-    fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf8');
-}

@@ -14,12 +14,79 @@ class DB {
     }
 
     _init() {
-        // Minimal example table
         this.db.prepare(`CREATE TABLE IF NOT EXISTS sanctions (id INTEGER PRIMARY KEY, guild TEXT, user TEXT, type TEXT, reason TEXT, moderator TEXT, date TEXT)`).run();
-        // Tickets table
         this.db.prepare(`CREATE TABLE IF NOT EXISTS tickets (id INTEGER PRIMARY KEY, guild TEXT, channel TEXT, owner TEXT, status TEXT, created_at TEXT)`).run();
-        // Simple user data table for profile/data deletion
         this.db.prepare(`CREATE TABLE IF NOT EXISTS user_data (id INTEGER PRIMARY KEY, user_id TEXT UNIQUE, data TEXT, updated_at TEXT)`).run();
+        
+        this.db.prepare(`CREATE TABLE IF NOT EXISTS guild_config (
+            guild_id TEXT PRIMARY KEY,
+            prefix TEXT DEFAULT '+',
+            welcome_channel TEXT,
+            welcome_message TEXT,
+            goodbye_channel TEXT,
+            goodbye_message TEXT,
+            log_channel TEXT,
+            modlog_channel TEXT,
+            verify_channel TEXT,
+            autorole_id TEXT,
+            updated_at TEXT
+        )`).run();
+        
+        this.db.prepare(`CREATE TABLE IF NOT EXISTS warnings (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            guild_id TEXT,
+            user_id TEXT,
+            moderator_id TEXT,
+            reason TEXT,
+            created_at TEXT
+        )`).run();
+        
+        this.db.prepare(`CREATE TABLE IF NOT EXISTS notes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            guild_id TEXT,
+            user_id TEXT,
+            moderator_id TEXT,
+            note TEXT,
+            created_at TEXT
+        )`).run();
+        
+        this.db.prepare(`CREATE TABLE IF NOT EXISTS automod_config (
+            guild_id TEXT PRIMARY KEY,
+            antispam BOOLEAN DEFAULT 0,
+            antilink BOOLEAN DEFAULT 0,
+            antiflood BOOLEAN DEFAULT 0,
+            antimention BOOLEAN DEFAULT 0,
+            antijoinraid BOOLEAN DEFAULT 0,
+            antinuke BOOLEAN DEFAULT 0,
+            antiedit BOOLEAN DEFAULT 0,
+            antibot BOOLEAN DEFAULT 0,
+            updated_at TEXT
+        )`).run();
+        
+        this.db.prepare(`CREATE TABLE IF NOT EXISTS logs_config (
+            guild_id TEXT PRIMARY KEY,
+            message_log BOOLEAN DEFAULT 0,
+            join_log BOOLEAN DEFAULT 0,
+            leave_log BOOLEAN DEFAULT 0,
+            mod_log BOOLEAN DEFAULT 0,
+            voice_log BOOLEAN DEFAULT 0,
+            updated_at TEXT
+        )`).run();
+        
+        this.db.prepare(`CREATE TABLE IF NOT EXISTS reminders (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT,
+            channel_id TEXT,
+            message TEXT,
+            remind_at TEXT,
+            created_at TEXT
+        )`).run();
+        
+        this.db.prepare(`CREATE TABLE IF NOT EXISTS afk_status (
+            user_id TEXT PRIMARY KEY,
+            reason TEXT,
+            since TEXT
+        )`).run();
     }
 
     addSanction(guild, user, type, reason, mod) {
@@ -53,6 +120,42 @@ class DB {
     deleteUserData(userId) {
         const stmt = this.db.prepare('DELETE FROM user_data WHERE user_id = ?');
         return stmt.run(userId);
+    }
+
+    // Warnings helpers
+    addWarning(guildId, userId, moderatorId, reason) {
+        const stmt = this.db.prepare('INSERT INTO warnings (guild_id, user_id, moderator_id, reason, created_at) VALUES (?,?,?,?,?)');
+        return stmt.run(guildId, userId, moderatorId, reason, new Date().toISOString());
+    }
+
+    getWarnings(guildId, userId) {
+        const stmt = this.db.prepare('SELECT * FROM warnings WHERE guild_id = ? AND user_id = ? ORDER BY created_at DESC');
+        return stmt.all(guildId, userId);
+    }
+
+    deleteWarning(warnId) {
+        const stmt = this.db.prepare('DELETE FROM warnings WHERE id = ?');
+        return stmt.run(warnId);
+    }
+
+    getWarningCount(guildId, userId) {
+        const stmt = this.db.prepare('SELECT COUNT(*) as count FROM warnings WHERE guild_id = ? AND user_id = ?');
+        return stmt.get(guildId, userId).count;
+    }
+
+    // Guild config helpers
+    getGuildConfig(guildId) {
+        const stmt = this.db.prepare('SELECT * FROM guild_config WHERE guild_id = ?');
+        return stmt.get(guildId);
+    }
+
+    setGuildConfig(guildId, key, value) {
+        const config = this.getGuildConfig(guildId);
+        if (!config) {
+            this.db.prepare(`INSERT INTO guild_config (guild_id, ${key}, updated_at) VALUES (?,?,?)`).run(guildId, value, new Date().toISOString());
+        } else {
+            this.db.prepare(`UPDATE guild_config SET ${key} = ?, updated_at = ? WHERE guild_id = ?`).run(value, new Date().toISOString(), guildId);
+        }
     }
 }
 
